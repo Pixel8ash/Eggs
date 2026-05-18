@@ -3,7 +3,7 @@ import os
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QPushButton, QSlider, QLabel, QListWidget, QListWidgetItem,
-    QFileDialog, QDialog, QLineEdit, QMessageBox, QScrollArea
+    QFileDialog, QDialog, QLineEdit, QMessageBox, QScrollArea, QStackedWidget
 )
 from PyQt6.QtCore import Qt, QTimer, QUrl, QRect, QSize
 from PyQt6.QtGui import QFont, QColor, QIcon, QPixmap, QPainter, QImage
@@ -15,7 +15,7 @@ from pathlib import Path
 class PixelArtCat:
     """Generate 16x16 pixel art cat animations"""
     
-    # 16x16 Pixel art cat frames with more detail
+    # 16x16 Pixel art cat frames
     FRAMES = {
         'idle_blink': [
             # Frame 1: Normal with open eyes
@@ -37,7 +37,7 @@ class PixelArtCat:
                 "                ",
                 "                "
             ],
-            # Frame 2: Blinking (eyes closed)
+            # Frame 2: Blinking
             [
                 "                ",
                 "    NNNNNNNNN    ",
@@ -58,7 +58,6 @@ class PixelArtCat:
             ]
         ],
         'idle_tail': [
-            # Frame 1: Tail down
             [
                 "                ",
                 "    NNNNNNNNN    ",
@@ -77,7 +76,6 @@ class PixelArtCat:
                 "         NN     ",
                 "         NN     "
             ],
-            # Frame 2: Tail mid-swing
             [
                 "                ",
                 "    NNNNNNNNN    ",
@@ -96,7 +94,6 @@ class PixelArtCat:
                 "          NNNN  ",
                 "            NN  "
             ],
-            # Frame 3: Tail up
             [
                 "            NN  ",
                 "    NNNNNNNNNNN ",
@@ -117,7 +114,6 @@ class PixelArtCat:
             ]
         ],
         'idle_headtilt': [
-            # Frame 1: Head normal
             [
                 "                ",
                 "    NNNNNNNNN    ",
@@ -136,7 +132,6 @@ class PixelArtCat:
                 "                ",
                 "                "
             ],
-            # Frame 2: Head tilted right
             [
                 "                ",
                 "     NNNNNNNNN   ",
@@ -157,7 +152,6 @@ class PixelArtCat:
             ]
         ],
         'idle_stretch': [
-            # Frame 1: Normal
             [
                 "                ",
                 "    NNNNNNNNN    ",
@@ -176,7 +170,6 @@ class PixelArtCat:
                 "                ",
                 "                "
             ],
-            # Frame 2: Stretching up
             [
                 "   NNNNNNNNN    ",
                 "   NPPPPPPPPN   ",
@@ -195,12 +188,52 @@ class PixelArtCat:
                 "                ",
                 "                "
             ]
+        ],
+        'sleep': [
+            # Cat sleeping - eyes closed, calm
+            [
+                "                ",
+                "    NNNNNNNNN    ",
+                "  NNNPPPPPPPNNN  ",
+                " NPPPPPPPPPPPPNN ",
+                " NPPNNNNNNNNPPPPN ",
+                "NPPNNNNNNNNNNPPN",
+                "NPNNNNNNNNNNNNPN",
+                "NPPNNPPPPNNPPN ",
+                "NPPPPPPPPPPPPPN ",
+                " NPPPPPPPPPPPPN ",
+                " NPPNNNNNNNNPPN ",
+                "  NPPPPPPPPPPN  ",
+                "   NPPPPPPPPN   ",
+                "    NNNNNNN     ",
+                "                ",
+                "                "
+            ],
+            # Frame 2: Sleeping deeply
+            [
+                "                ",
+                "    NNNNNNNNN    ",
+                "  NNNPPPPPPPNNN  ",
+                " NPPPPPPPPPPPPNN ",
+                " NPPNNNNNNNNPPPPN ",
+                "NPPNNNPPPNNNPPN",
+                "NPNNNNNNNNNNNNPN",
+                "NPPNNPPPPNNPPN ",
+                "NPPPPPPPPPPPPPN ",
+                " NPPPPPPPPPPPPN ",
+                " NPPNNNNNNNNPPN ",
+                "  NPPPPPPPPPPN  ",
+                "   NPPPPPPPPN   ",
+                "    NNNNNNN     ",
+                "                ",
+                "                "
+            ]
         ]
     }
     
     COLORS = {
-        'N': '#2D3748',  # Dark gray (outline)
-        'P': '#F5A962',  # Orange (cat body)
+        'N': '#2D3748',  # Dark gray
+        'P': '#F5A962',  # Orange
         ' ': '#1A1A2E'   # Background
     }
     
@@ -217,7 +250,6 @@ class PixelArtCat:
             for x, char in enumerate(row):
                 color = QColor(PixelArtCat.COLORS.get(char, '#1A1A2E'))
                 painter.fillRect(x * pixel_size, y * pixel_size, pixel_size, pixel_size, color)
-                # Add subtle border to pixels for pixelated look
                 painter.drawRect(x * pixel_size, y * pixel_size, pixel_size, pixel_size)
         
         painter.end()
@@ -239,12 +271,10 @@ class SettingsDialog(QDialog):
         layout.setSpacing(15)
         layout.setContentsMargins(20, 20, 20, 20)
         
-        # Title
         title = QLabel("Settings")
         title.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
         layout.addWidget(title)
         
-        # Password prompt
         pwd_layout = QHBoxLayout()
         pwd_label = QLabel("🔐 Password:")
         pwd_label.setFont(QFont("Segoe UI", 11))
@@ -257,7 +287,6 @@ class SettingsDialog(QDialog):
         pwd_layout.addWidget(self.pwd_input)
         layout.addLayout(pwd_layout)
         
-        # Submit button
         submit_btn = QPushButton("🔓 Unlock Settings")
         submit_btn.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
         submit_btn.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -280,7 +309,7 @@ class SettingsDialog(QDialog):
             self.pwd_input.clear()
             
     def apply_dark_theme(self):
-        """Apply dark mode with rounded corners"""
+        """Apply dark mode"""
         self.setStyleSheet("""
             QDialog {
                 background-color: #1A1A2E;
@@ -317,7 +346,7 @@ class SettingsDialog(QDialog):
 
 
 class SecretMenuDialog(QDialog):
-    """Secret menu with Movies and Games - separate folders"""
+    """Secret menu with Movies and Games"""
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("🔐 Secret Menu")
@@ -330,7 +359,7 @@ class SecretMenuDialog(QDialog):
         layout.setSpacing(20)
         layout.setContentsMargins(20, 20, 20, 20)
         
-        # Movies section (left)
+        # Movies section
         movies_layout = QVBoxLayout()
         movies_title = QLabel("🎬 MOVIES")
         movies_title.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
@@ -340,21 +369,16 @@ class SecretMenuDialog(QDialog):
         self.movies_list = QListWidget()
         self.movies_list.setFont(QFont("Segoe UI", 11))
         movies = [
-            "The Matrix (1999)",
-            "Inception (2010)",
-            "Interstellar (2014)",
-            "The Dark Knight (2008)",
-            "Pulp Fiction (1994)",
-            "Forrest Gump (1994)",
-            "The Shawshank Redemption (1994)",
-            "Gladiator (2000)"
+            "The Matrix (1999)", "Inception (2010)", "Interstellar (2014)",
+            "The Dark Knight (2008)", "Pulp Fiction (1994)", "Forrest Gump (1994)",
+            "The Shawshank Redemption (1994)", "Gladiator (2000)"
         ]
         for movie in movies:
             self.movies_list.addItem(movie)
         movies_layout.addWidget(self.movies_list)
         layout.addLayout(movies_layout, 1)
         
-        # Games section (right)
+        # Games section
         games_layout = QVBoxLayout()
         games_title = QLabel("🎮 GAMES")
         games_title.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
@@ -364,14 +388,8 @@ class SecretMenuDialog(QDialog):
         self.games_list = QListWidget()
         self.games_list.setFont(QFont("Segoe UI", 11))
         games = [
-            "Elden Ring",
-            "Cyberpunk 2077",
-            "The Witcher 3",
-            "Baldur's Gate 3",
-            "Starfield",
-            "Hogwarts Legacy",
-            "Palworld",
-            "Final Fantasy VII Remake"
+            "Elden Ring", "Cyberpunk 2077", "The Witcher 3", "Baldur's Gate 3",
+            "Starfield", "Hogwarts Legacy", "Palworld", "Final Fantasy VII Remake"
         ]
         for game in games:
             self.games_list.addItem(game)
@@ -381,7 +399,6 @@ class SecretMenuDialog(QDialog):
         self.setLayout(layout)
         
     def apply_dark_theme(self):
-        """Apply dark mode"""
         self.setStyleSheet("""
             QDialog {
                 background-color: #1A1A2E;
@@ -410,12 +427,46 @@ class SecretMenuDialog(QDialog):
         """)
 
 
+class CategoryPage(QWidget):
+    """Page for each category (Audiobooks, Books, Movies, Music)"""
+    def __init__(self, category_name, parent=None):
+        super().__init__(parent)
+        self.category_name = category_name
+        self.init_ui()
+        
+    def init_ui(self):
+        layout = QVBoxLayout()
+        
+        title = QLabel(f"📂 {self.category_name}")
+        title.setFont(QFont("Segoe UI", 16, QFont.Weight.Bold))
+        layout.addWidget(title)
+        
+        self.list_widget = QListWidget()
+        self.list_widget.setFont(QFont("Segoe UI", 11))
+        
+        # Add placeholder items
+        if self.category_name == "Audiobooks":
+            items = ["Educated - Tara Westover", "Atomic Habits - James Clear", "The Midnight Library"]
+        elif self.category_name == "Books":
+            items = ["1984 - George Orwell", "To Kill a Mockingbird", "The Great Gatsby"]
+        elif self.category_name == "Movies":
+            items = ["The Matrix", "Inception", "Interstellar"]
+        else:  # Music
+            items = ["Song 1", "Song 2", "Song 3"]
+        
+        for item in items:
+            self.list_widget.addItem(item)
+        
+        layout.addWidget(self.list_widget)
+        self.setLayout(layout)
+
+
 class MediaPlayer(QMainWindow):
-    """Main Media Player Application with 16x16 Pixel Art Cat"""
+    """Main Media Player with Menu Navigation"""
     def __init__(self):
         super().__init__()
         self.setWindowTitle("🎵 Universal Media Player")
-        self.setGeometry(100, 100, 1100, 900)
+        self.setGeometry(100, 100, 1200, 900)
         
         # Media player setup
         self.player = QMediaPlayer()
@@ -430,14 +481,18 @@ class MediaPlayer(QMainWindow):
         self.playlist = []
         self.current_index = 0
         self.secret_unlocked = False
+        self.idle_timer = QTimer()
+        self.idle_timer.timeout.connect(self.handle_idle_timeout)
+        self.idle_start_time = 0
         
-        # Pixel art cat animation (16x16)
+        # Pixel art cat animation
         self.cat_frame = 0
         self.cat_animation_index = 0
         self.cat_animations = ['idle_blink', 'idle_tail', 'idle_headtilt', 'idle_stretch']
+        self.is_sleeping = False
         self.cat_timer = QTimer()
         self.cat_timer.timeout.connect(self.update_cat_animation)
-        self.cat_timer.start(400)  # Update every 400ms
+        self.cat_timer.start(400)
         
         self.init_ui()
         self.apply_dark_theme()
@@ -455,17 +510,16 @@ class MediaPlayer(QMainWindow):
         
         title = QLabel("🎵 Media Player")
         title.setFont(QFont("Segoe UI", 20, QFont.Weight.Bold))
-        title.setAlignment(Qt.AlignmentFlag.AlignLeft)
         top_layout.addWidget(title)
         
-        # Pixel art cat display (16x16, scaled to 320x320)
+        # Pixel art cat display
         self.cat_label = QLabel()
         self.cat_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.cat_label.setFixedSize(330, 330)
         self.update_cat_display()
         top_layout.addWidget(self.cat_label)
         
-        # Settings button (top right)
+        # Settings button
         settings_btn = QPushButton("⚙️")
         settings_btn.setFont(QFont("Segoe UI", 16))
         settings_btn.setFixedSize(60, 60)
@@ -475,6 +529,25 @@ class MediaPlayer(QMainWindow):
         top_layout.addWidget(settings_btn)
         
         main_layout.addLayout(top_layout)
+        
+        # Menu buttons (Audiobooks, Books, Movies, Music)
+        menu_layout = QVBoxLayout()
+        menu_layout.setSpacing(12)
+        menu_layout.setContentsMargins(0, 20, 0, 20)
+        
+        categories = ["🎧 Audiobooks", "📚 Books", "🎬 Movies", "🎵 Music"]
+        self.menu_buttons = []
+        
+        for category in categories:
+            btn = QPushButton(f"{category}     →")
+            btn.setFont(QFont("Segoe UI", 13, QFont.Weight.Bold))
+            btn.setFixedHeight(50)
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.clicked.connect(lambda checked, c=category: self.show_category(c))
+            self.menu_buttons.append(btn)
+            menu_layout.addWidget(btn)
+        
+        main_layout.addLayout(menu_layout)
         
         # Current playing info
         self.info_label = QLabel("▶️ Select a file to play")
@@ -490,13 +563,12 @@ class MediaPlayer(QMainWindow):
         self.playlist_widget = QListWidget()
         self.playlist_widget.setFont(QFont("Segoe UI", 10))
         self.playlist_widget.itemDoubleClicked.connect(self.play_from_list)
-        self.playlist_widget.setMaximumHeight(150)
+        self.playlist_widget.setMaximumHeight(130)
         main_layout.addWidget(self.playlist_widget)
         
         # Load button
         load_btn = QPushButton("+ Load Files")
         load_btn.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
-        load_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         load_btn.setFixedHeight(40)
         load_btn.clicked.connect(self.load_files)
         main_layout.addWidget(load_btn)
@@ -511,7 +583,6 @@ class MediaPlayer(QMainWindow):
         progress_layout.addWidget(self.time_label)
         
         self.progress_slider = QSlider(Qt.Orientation.Horizontal)
-        self.progress_slider.setSliderPosition(0)
         self.progress_slider.sliderMoved.connect(self.set_position)
         progress_layout.addWidget(self.progress_slider)
         
@@ -526,13 +597,7 @@ class MediaPlayer(QMainWindow):
         controls_layout = QHBoxLayout()
         controls_layout.setSpacing(10)
         
-        buttons = [
-            ("⏮", self.previous),
-            ("⏸", self.pause),
-            ("▶️", self.play),
-            ("⏹", self.stop),
-            ("⏭", self.next),
-        ]
+        buttons = [("⏮", self.previous), ("⏸", self.pause), ("▶️", self.play), ("⏹", self.stop), ("⏭", self.next)]
         
         for emoji, func in buttons:
             btn = QPushButton(emoji)
@@ -572,26 +637,49 @@ class MediaPlayer(QMainWindow):
         main_widget.setLayout(main_layout)
         self.setCentralWidget(main_widget)
         
+    def show_category(self, category):
+        """Show category content"""
+        category_name = category.split()[1]  # Extract name without emoji
+        QMessageBox.information(self, category_name, f"Loading {category_name} content...")
+        
     def update_cat_animation(self):
         """Update pixel art cat animation"""
-        current_anim = self.cat_animations[self.cat_animation_index % len(self.cat_animations)]
-        frames = PixelArtCat.FRAMES[current_anim]
+        if not self.is_sleeping:
+            current_anim = self.cat_animations[self.cat_animation_index % len(self.cat_animations)]
+            frames = PixelArtCat.FRAMES[current_anim]
+        else:
+            frames = PixelArtCat.FRAMES['sleep']
         
         self.cat_frame = (self.cat_frame + 1) % len(frames)
         
-        # Change animation every 3 frames
-        if self.cat_frame == 0:
+        if not self.is_sleeping and self.cat_frame == 0:
             self.cat_animation_index += 1
         
         self.update_cat_display()
         
     def update_cat_display(self):
         """Display current cat frame"""
-        current_anim = self.cat_animations[self.cat_animation_index % len(self.cat_animations)]
-        frames = PixelArtCat.FRAMES[current_anim]
+        if not self.is_sleeping:
+            current_anim = self.cat_animations[self.cat_animation_index % len(self.cat_animations)]
+            frames = PixelArtCat.FRAMES[current_anim]
+        else:
+            frames = PixelArtCat.FRAMES['sleep']
+        
         frame_data = frames[self.cat_frame % len(frames)]
         pixmap = PixelArtCat.render_frame(frame_data, 320)
         self.cat_label.setPixmap(pixmap)
+        
+    def handle_idle_timeout(self):
+        """Handle 5-minute idle timeout"""
+        if not self.is_playing:
+            self.is_sleeping = True
+            self.info_label.setText("😴 Cat is sleeping... (5 mins of idle)")
+        
+    def reset_idle_timer(self):
+        """Reset idle timer on user activity"""
+        self.is_sleeping = False
+        self.idle_timer.stop()
+        self.idle_timer.start(5 * 60 * 1000)  # 5 minutes
         
     def open_settings(self):
         """Open password protected settings"""
@@ -602,16 +690,15 @@ class MediaPlayer(QMainWindow):
                 self.show_secret_menu()
     
     def show_secret_menu(self):
-        """Show the secret menu with Movies and Games"""
+        """Show the secret menu"""
         secret_menu = SecretMenuDialog(self)
         secret_menu.exec()
         
     def load_files(self):
         """Load audio files into playlist"""
+        self.reset_idle_timer()
         files, _ = QFileDialog.getOpenFileNames(
-            self, 
-            "Select Audio Files", 
-            "",
+            self, "Select Audio Files", "",
             "Audio Files (*.mp3 *.flac *.wav *.ogg *.m4b *.aac);;All Files (*)"
         )
         
@@ -627,6 +714,7 @@ class MediaPlayer(QMainWindow):
         
     def play(self):
         """Play current or selected file"""
+        self.reset_idle_timer()
         if self.current_index < len(self.playlist):
             file_path = self.playlist[self.current_index]
             self.player.setSource(QUrl.fromLocalFile(file_path))
@@ -642,6 +730,7 @@ class MediaPlayer(QMainWindow):
             self.player.pause()
             self.is_playing = False
             self.info_label.setText("⏸ Paused")
+            self.reset_idle_timer()
             
     def stop(self):
         """Stop playback"""
@@ -649,6 +738,7 @@ class MediaPlayer(QMainWindow):
         self.is_playing = False
         self.info_label.setText("⏹ Stopped")
         self.progress_slider.setValue(0)
+        self.reset_idle_timer()
         
     def next(self):
         """Play next track"""
@@ -674,7 +764,6 @@ class MediaPlayer(QMainWindow):
         self.progress_slider.setValue(position)
         self.progress_slider.blockSignals(False)
         
-        # Update time label
         minutes = position // 60000
         seconds = (position % 60000) // 1000
         self.time_label.setText(f"{minutes:02d}:{seconds:02d}")
