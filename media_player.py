@@ -3,46 +3,161 @@ import os
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QPushButton, QSlider, QLabel, QListWidget, QListWidgetItem,
-    QFileDialog, QDialog, QLineEdit, QMessageBox, QTabWidget
+    QFileDialog, QDialog, QLineEdit, QMessageBox, QScrollArea
 )
-from PyQt6.QtCore import Qt, QTimer, QUrl
-from PyQt6.QtGui import QFont, QColor, QIcon
+from PyQt6.QtCore import Qt, QTimer, QUrl, QRect, QSize
+from PyQt6.QtGui import QFont, QColor, QIcon, QPixmap, QPainter, QImage
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 import json
 from pathlib import Path
+
+
+class PixelArtCat:
+    """Generate pixel art cat animations"""
+    
+    # Pixel art cat frames (8x8 grid)
+    FRAMES = {
+        'idle_blink': [
+            # Frame 1: Normal
+            [
+                "  NN  NN ",
+                " NPPPPPPN",
+                "NPPPPPPPPN",
+                "NPPNNNNPPN",
+                "NPNNNNNNNPN",
+                "NPNNNNNNPN",
+                "NPPNNNNPPN",
+                " NPPPPPPPN"
+            ],
+            # Frame 2: Blinking
+            [
+                "  NN  NN ",
+                " NPPPPPPN",
+                "NPPPPPPPPN",
+                "NPPPPPPPPN",
+                "NPNNNNNNNPN",
+                "NPNNNNNNPN",
+                "NPPNNNNPPN",
+                " NPPPPPPPN"
+            ]
+        ],
+        'idle_tail': [
+            # Frame 1: Tail down
+            [
+                "  NN  NN ",
+                " NPPPPPPN",
+                "NPPPPPPPPN",
+                "NPPNNNNPPN",
+                "NPNNNNNNNPN",
+                "NPNNNNNNPN",
+                "NPPNNNNPPN",
+                " NPPPPPPPN"
+            ],
+            # Frame 2: Tail up
+            [
+                "  NNNNNN ",
+                " NPPPPPPN",
+                "NPPPPPPPPN",
+                "NPPNNNNPPN",
+                "NPNNNNNNNPN",
+                "NPNNNNNNPN",
+                "NPPNNNNPPN",
+                " NPPPPPPPN"
+            ]
+        ],
+        'idle_headtilt': [
+            # Frame 1: Head normal
+            [
+                "  NN  NN ",
+                " NPPPPPPN",
+                "NPPPPPPPPN",
+                "NPPNNNNPPN",
+                "NPNNNNNNNPN",
+                "NPNNNNNNPN",
+                "NPPNNNNPPN",
+                " NPPPPPPPN"
+            ],
+            # Frame 2: Head tilted
+            [
+                "   NN NN  ",
+                "  NPPPPPPN",
+                " NPPPPPPPPN",
+                " NPPNNNNPPN",
+                " NPNNNNNNNPN",
+                " NPNNNNNNPN",
+                " NPPNNNNPPN",
+                "  NPPPPPPPN"
+            ]
+        ]
+    }
+    
+    COLORS = {
+        'N': '#2D3748',  # Dark gray (outline)
+        'P': '#F5A962',  # Orange (cat body)
+        ' ': '#1A1A2E'   # Background
+    }
+    
+    @staticmethod
+    def render_frame(frame_data, size=256):
+        """Render pixel art frame to QPixmap"""
+        pixmap = QPixmap(size, size)
+        pixmap.fill(QColor('#1A1A2E'))
+        
+        painter = QPainter(pixmap)
+        pixel_size = size // 8
+        
+        for y, row in enumerate(frame_data):
+            for x, char in enumerate(row):
+                color = QColor(PixelArtCat.COLORS.get(char, '#1A1A2E'))
+                painter.fillRect(x * pixel_size, y * pixel_size, pixel_size, pixel_size, color)
+                # Add subtle border to pixels
+                painter.drawRect(x * pixel_size, y * pixel_size, pixel_size, pixel_size)
+        
+        painter.end()
+        return pixmap
 
 
 class SettingsDialog(QDialog):
     """Password protected settings dialog"""
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Settings")
-        self.setGeometry(100, 100, 400, 200)
+        self.setWindowTitle("⚙️ Settings")
+        self.setGeometry(100, 100, 450, 220)
         self.secret_unlocked = False
         self.init_ui()
-        self.apply_material3_theme()
+        self.apply_dark_theme()
         
     def init_ui(self):
         layout = QVBoxLayout()
+        layout.setSpacing(15)
+        layout.setContentsMargins(20, 20, 20, 20)
+        
+        # Title
+        title = QLabel("Settings")
+        title.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
+        layout.addWidget(title)
         
         # Password prompt
         pwd_layout = QHBoxLayout()
-        pwd_label = QLabel("Enter Password:")
+        pwd_label = QLabel("🔐 Password:")
         pwd_label.setFont(QFont("Segoe UI", 11))
         self.pwd_input = QLineEdit()
         self.pwd_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.pwd_input.setFont(QFont("Segoe UI", 11))
+        self.pwd_input.setPlaceholderText("Enter password...")
         self.pwd_input.returnPressed.connect(self.check_password)
         pwd_layout.addWidget(pwd_label)
         pwd_layout.addWidget(self.pwd_input)
         layout.addLayout(pwd_layout)
         
         # Submit button
-        submit_btn = QPushButton("Unlock Settings")
-        submit_btn.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+        submit_btn = QPushButton("🔓 Unlock Settings")
+        submit_btn.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
+        submit_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         submit_btn.clicked.connect(self.check_password)
         layout.addWidget(submit_btn)
         
+        layout.addStretch()
         self.setLayout(layout)
         
     def check_password(self):
@@ -51,42 +166,45 @@ class SettingsDialog(QDialog):
         
         if password == "purple bananas":
             self.secret_unlocked = True
-            QMessageBox.information(self, "Success", "🔓 Secret menu unlocked!\n\nAccess Movies & Games from the menu.")
+            QMessageBox.information(self, "✅ Success", "🔓 Secret menu unlocked!\n\nAccess Movies & Games from the menu.")
             self.accept()
         else:
-            QMessageBox.warning(self, "Access Denied", "❌ Incorrect password.\n\nSettings locked.")
+            QMessageBox.warning(self, "❌ Access Denied", "Incorrect password.\n\nSettings locked.")
             self.pwd_input.clear()
             
-    def apply_material3_theme(self):
-        """Apply Material 3 theme"""
+    def apply_dark_theme(self):
+        """Apply dark mode with rounded corners"""
         self.setStyleSheet("""
             QDialog {
-                background-color: #FFFBFE;
+                background-color: #1A1A2E;
             }
             QLineEdit {
-                background-color: #F5EFF7;
-                border: 2px solid #E0D7E8;
+                background-color: #2D3748;
+                border: 2px solid #4A5568;
                 border-radius: 8px;
-                padding: 8px;
-                color: #1C1B1F;
-                selection-background-color: #6750A4;
+                padding: 8px 12px;
+                color: #E2E8F0;
+                selection-background-color: #7C3AED;
+            }
+            QLineEdit:focus {
+                border: 2px solid #7C3AED;
             }
             QPushButton {
-                background-color: #6750A4;
+                background-color: #7C3AED;
                 color: white;
                 border: none;
-                border-radius: 100px;
-                padding: 10px 20px;
+                border-radius: 12px;
+                padding: 12px 20px;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #5A4B8E;
+                background-color: #6D28D9;
             }
             QPushButton:pressed {
-                background-color: #4F4178;
+                background-color: #5B21B6;
             }
             QLabel {
-                color: #1C1B1F;
+                color: #E2E8F0;
             }
         """)
 
@@ -96,12 +214,14 @@ class SecretMenuDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("🔐 Secret Menu")
-        self.setGeometry(100, 100, 900, 600)
+        self.setGeometry(100, 100, 1000, 650)
         self.init_ui()
-        self.apply_material3_theme()
+        self.apply_dark_theme()
         
     def init_ui(self):
         layout = QHBoxLayout()
+        layout.setSpacing(20)
+        layout.setContentsMargins(20, 20, 20, 20)
         
         # Movies section (left)
         movies_layout = QVBoxLayout()
@@ -153,20 +273,20 @@ class SecretMenuDialog(QDialog):
         
         self.setLayout(layout)
         
-    def apply_material3_theme(self):
-        """Apply Material 3 theme"""
+    def apply_dark_theme(self):
+        """Apply dark mode"""
         self.setStyleSheet("""
             QDialog {
-                background-color: #FFFBFE;
+                background-color: #1A1A2E;
             }
             QLabel {
-                color: #1C1B1F;
+                color: #E2E8F0;
             }
             QListWidget {
-                background-color: #F5EFF7;
-                border: 2px solid #E0D7E8;
-                border-radius: 8px;
-                color: #1C1B1F;
+                background-color: #2D3748;
+                border: 2px solid #4A5568;
+                border-radius: 12px;
+                color: #E2E8F0;
                 padding: 5px;
             }
             QListWidget::item {
@@ -174,21 +294,21 @@ class SecretMenuDialog(QDialog):
                 border-radius: 4px;
             }
             QListWidget::item:selected {
-                background-color: #6750A4;
+                background-color: #7C3AED;
                 color: white;
             }
             QListWidget::item:hover {
-                background-color: #EADDFF;
+                background-color: #4A5568;
             }
         """)
 
 
 class MediaPlayer(QMainWindow):
-    """Main Media Player Application with Material 3 Design"""
+    """Main Media Player Application with Material 3 Design & Pixel Art Cat"""
     def __init__(self):
         super().__init__()
         self.setWindowTitle("🎵 Universal Media Player")
-        self.setGeometry(100, 100, 900, 700)
+        self.setGeometry(100, 100, 1100, 850)
         
         # Media player setup
         self.player = QMediaPlayer()
@@ -204,25 +324,44 @@ class MediaPlayer(QMainWindow):
         self.current_index = 0
         self.secret_unlocked = False
         
+        # Pixel art cat animation
+        self.cat_frame = 0
+        self.cat_animation_index = 0
+        self.cat_timer = QTimer()
+        self.cat_timer.timeout.connect(self.update_cat_animation)
+        self.cat_timer.start(500)  # Update every 500ms
+        
         self.init_ui()
-        self.apply_material3_theme()
+        self.apply_dark_theme()
         
     def init_ui(self):
         """Initialize the UI"""
         main_widget = QWidget()
         main_layout = QVBoxLayout()
+        main_layout.setSpacing(15)
+        main_layout.setContentsMargins(20, 20, 20, 20)
         
         # Top bar with title and settings
         top_layout = QHBoxLayout()
+        top_layout.setSpacing(15)
+        
         title = QLabel("🎵 Media Player")
-        title.setFont(QFont("Segoe UI", 18, QFont.Weight.Bold))
+        title.setFont(QFont("Segoe UI", 20, QFont.Weight.Bold))
         title.setAlignment(Qt.AlignmentFlag.AlignLeft)
         top_layout.addWidget(title)
         
+        # Pixel art cat display
+        self.cat_label = QLabel()
+        self.cat_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.cat_label.setFixedSize(180, 180)
+        self.update_cat_display()
+        top_layout.addWidget(self.cat_label)
+        
         # Settings button (top right)
-        settings_btn = QPushButton("⚙️ Settings")
-        settings_btn.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
-        settings_btn.setFixedWidth(120)
+        settings_btn = QPushButton("⚙️")
+        settings_btn.setFont(QFont("Segoe UI", 14))
+        settings_btn.setFixedSize(50, 50)
+        settings_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         settings_btn.clicked.connect(self.open_settings)
         top_layout.addStretch()
         top_layout.addWidget(settings_btn)
@@ -230,8 +369,8 @@ class MediaPlayer(QMainWindow):
         main_layout.addLayout(top_layout)
         
         # Current playing info
-        self.info_label = QLabel("Select a file to play")
-        self.info_label.setFont(QFont("Segoe UI", 11))
+        self.info_label = QLabel("▶️ Select a file to play")
+        self.info_label.setFont(QFont("Segoe UI", 12))
         self.info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(self.info_label)
         
@@ -243,18 +382,24 @@ class MediaPlayer(QMainWindow):
         self.playlist_widget = QListWidget()
         self.playlist_widget.setFont(QFont("Segoe UI", 10))
         self.playlist_widget.itemDoubleClicked.connect(self.play_from_list)
+        self.playlist_widget.setMaximumHeight(180)
         main_layout.addWidget(self.playlist_widget)
         
         # Load button
         load_btn = QPushButton("+ Load Files")
-        load_btn.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+        load_btn.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
+        load_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        load_btn.setFixedHeight(40)
         load_btn.clicked.connect(self.load_files)
         main_layout.addWidget(load_btn)
         
         # Progress bar
         progress_layout = QHBoxLayout()
+        progress_layout.setSpacing(10)
+        
         self.time_label = QLabel("00:00")
-        self.time_label.setFont(QFont("Segoe UI", 9))
+        self.time_label.setFont(QFont("Segoe UI", 10))
+        self.time_label.setFixedWidth(50)
         progress_layout.addWidget(self.time_label)
         
         self.progress_slider = QSlider(Qt.Orientation.Horizontal)
@@ -263,60 +408,84 @@ class MediaPlayer(QMainWindow):
         progress_layout.addWidget(self.progress_slider)
         
         self.duration_label = QLabel("00:00")
-        self.duration_label.setFont(QFont("Segoe UI", 9))
+        self.duration_label.setFont(QFont("Segoe UI", 10))
+        self.duration_label.setFixedWidth(50)
         progress_layout.addWidget(self.duration_label)
         
         main_layout.addLayout(progress_layout)
         
         # Control buttons
         controls_layout = QHBoxLayout()
+        controls_layout.setSpacing(10)
         
-        play_btn = QPushButton("▶️ Play")
-        play_btn.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
-        play_btn.clicked.connect(self.play)
-        controls_layout.addWidget(play_btn)
+        buttons = [
+            ("⏮", self.previous),
+            ("⏸", self.pause),
+            ("▶️", self.play),
+            ("⏹", self.stop),
+            ("⏭", self.next),
+        ]
         
-        pause_btn = QPushButton("⏸ Pause")
-        pause_btn.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
-        pause_btn.clicked.connect(self.pause)
-        controls_layout.addWidget(pause_btn)
-        
-        stop_btn = QPushButton("⏹ Stop")
-        stop_btn.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
-        stop_btn.clicked.connect(self.stop)
-        controls_layout.addWidget(stop_btn)
-        
-        prev_btn = QPushButton("⏮ Previous")
-        prev_btn.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
-        prev_btn.clicked.connect(self.previous)
-        controls_layout.addWidget(prev_btn)
-        
-        next_btn = QPushButton("⏭ Next")
-        next_btn.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
-        next_btn.clicked.connect(self.next)
-        controls_layout.addWidget(next_btn)
+        for emoji, func in buttons:
+            btn = QPushButton(emoji)
+            btn.setFont(QFont("Segoe UI", 12))
+            btn.setFixedHeight(45)
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.clicked.connect(func)
+            controls_layout.addWidget(btn)
         
         main_layout.addLayout(controls_layout)
         
         # Volume control
         volume_layout = QHBoxLayout()
-        volume_label = QLabel("🔊 Volume:")
-        volume_label.setFont(QFont("Segoe UI", 10))
+        volume_layout.setSpacing(10)
+        
+        volume_label = QLabel("🔊")
+        volume_label.setFont(QFont("Segoe UI", 12))
         volume_layout.addWidget(volume_label)
         
         self.volume_slider = QSlider(Qt.Orientation.Horizontal)
         self.volume_slider.setRange(0, 100)
         self.volume_slider.setValue(70)
-        self.volume_slider.setMaximumWidth(200)
+        self.volume_slider.setMaximumWidth(250)
         self.volume_slider.sliderMoved.connect(self.set_volume)
         self.volume_slider.setValue(70)
         volume_layout.addWidget(self.volume_slider)
+        
+        volume_value = QLabel("70%")
+        volume_value.setFont(QFont("Segoe UI", 10))
+        volume_value.setFixedWidth(40)
+        self.volume_slider.valueChanged.connect(lambda v: volume_value.setText(f"{v}%"))
+        volume_layout.addWidget(volume_value)
         
         volume_layout.addStretch()
         main_layout.addLayout(volume_layout)
         
         main_widget.setLayout(main_layout)
         self.setCentralWidget(main_widget)
+        
+    def update_cat_animation(self):
+        """Update pixel art cat animation"""
+        animations = ['idle_blink', 'idle_tail', 'idle_headtilt']
+        current_anim = animations[self.cat_animation_index % len(animations)]
+        
+        frames = PixelArtCat.FRAMES[current_anim]
+        self.cat_frame = (self.cat_frame + 1) % len(frames)
+        
+        # Change animation every 3 frames
+        if self.cat_frame == 0:
+            self.cat_animation_index += 1
+        
+        self.update_cat_display()
+        
+    def update_cat_display(self):
+        """Display current cat frame"""
+        animations = ['idle_blink', 'idle_tail', 'idle_headtilt']
+        current_anim = animations[self.cat_animation_index % len(animations)]
+        frames = PixelArtCat.FRAMES[current_anim]
+        frame_data = frames[self.cat_frame % len(frames)]
+        pixmap = PixelArtCat.render_frame(frame_data, 160)
+        self.cat_label.setPixmap(pixmap)
         
     def open_settings(self):
         """Open password protected settings"""
@@ -358,7 +527,7 @@ class MediaPlayer(QMainWindow):
             self.player.play()
             self.is_playing = True
             filename = os.path.basename(file_path)
-            self.info_label.setText(f"Now Playing: {filename}")
+            self.info_label.setText(f"▶️ Now Playing: {filename}")
             self.playlist_widget.setCurrentRow(self.current_index)
             
     def pause(self):
@@ -366,13 +535,13 @@ class MediaPlayer(QMainWindow):
         if self.is_playing:
             self.player.pause()
             self.is_playing = False
-            self.info_label.setText("Paused")
+            self.info_label.setText("⏸ Paused")
             
     def stop(self):
         """Stop playback"""
         self.player.stop()
         self.is_playing = False
-        self.info_label.setText("Stopped")
+        self.info_label.setText("⏹ Stopped")
         self.progress_slider.setValue(0)
         
     def next(self):
@@ -421,64 +590,72 @@ class MediaPlayer(QMainWindow):
         if status == QMediaPlayer.MediaStatus.EndOfMedia:
             self.next()
             
-    def apply_material3_theme(self):
-        """Apply Material 3 adaptive design theme"""
+    def apply_dark_theme(self):
+        """Apply dark mode with rounded corners"""
         self.setStyleSheet("""
             QMainWindow {
-                background-color: #FFFBFE;
+                background-color: #1A1A2E;
             }
             QWidget {
-                background-color: #FFFBFE;
-                color: #1C1B1F;
+                background-color: #1A1A2E;
+                color: #E2E8F0;
             }
             QLabel {
-                color: #1C1B1F;
+                color: #E2E8F0;
             }
             QPushButton {
-                background-color: #6750A4;
+                background-color: #7C3AED;
                 color: white;
                 border: none;
-                border-radius: 100px;
+                border-radius: 12px;
                 padding: 8px 16px;
                 font-weight: bold;
-                margin: 4px;
             }
             QPushButton:hover {
-                background-color: #5A4B8E;
+                background-color: #6D28D9;
             }
             QPushButton:pressed {
-                background-color: #4F4178;
+                background-color: #5B21B6;
             }
             QSlider::groove:horizontal {
-                background-color: #E0D7E8;
-                height: 4px;
-                border-radius: 2px;
+                background-color: #2D3748;
+                height: 6px;
+                border-radius: 3px;
             }
             QSlider::handle:horizontal {
-                background-color: #6750A4;
+                background-color: #7C3AED;
                 width: 18px;
-                margin: -7px 0;
+                margin: -6px 0;
                 border-radius: 9px;
             }
             QSlider::handle:horizontal:hover {
-                background-color: #5A4B8E;
+                background-color: #6D28D9;
             }
             QListWidget {
-                background-color: #F5EFF7;
-                border: 2px solid #E0D7E8;
-                border-radius: 8px;
+                background-color: #2D3748;
+                border: 2px solid #4A5568;
+                border-radius: 12px;
                 padding: 5px;
             }
             QListWidget::item {
-                padding: 6px;
+                padding: 8px;
                 border-radius: 4px;
             }
             QListWidget::item:selected {
-                background-color: #6750A4;
+                background-color: #7C3AED;
                 color: white;
             }
             QListWidget::item:hover {
-                background-color: #EADDFF;
+                background-color: #4A5568;
+            }
+            QScrollBar:vertical {
+                background-color: #2D3748;
+                width: 12px;
+                border-radius: 6px;
+            }
+            QScrollBar::handle:vertical {
+                background-color: #7C3AED;
+                border-radius: 6px;
             }
         """)
 
