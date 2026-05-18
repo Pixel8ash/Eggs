@@ -13,80 +13,187 @@ from pathlib import Path
 
 
 class PixelArtCat:
-    """Generate pixel art cat animations"""
+    """Generate 16x16 pixel art cat animations"""
     
-    # Pixel art cat frames (8x8 grid)
+    # 16x16 Pixel art cat frames with more detail
     FRAMES = {
         'idle_blink': [
-            # Frame 1: Normal
+            # Frame 1: Normal with open eyes
             [
-                "  NN  NN ",
-                " NPPPPPPN",
-                "NPPPPPPPPN",
-                "NPPNNNNPPN",
-                "NPNNNNNNNPN",
-                "NPNNNNNNPN",
-                "NPPNNNNPPN",
-                " NPPPPPPPN"
+                "                ",
+                "    NNNNNNNNN    ",
+                "  NNNPPPPPPPNNN  ",
+                " NPPPPPPPPPPPPNN ",
+                " NPPNNNNNNNPPPPN ",
+                "NPPNNNNNNNNNNPPN",
+                "NPNNNNNNNNNNNNPN",
+                "NPPNNNNNNNNNPPN ",
+                "NPPPPPPPPPPPPPN ",
+                " NPPPPPPPPPPPPN ",
+                " NPPNNPNNPNPPN ",
+                "  NPPPPPPPPPPN  ",
+                "   NPPPPPPPPN   ",
+                "    NNNNNNN     ",
+                "                ",
+                "                "
             ],
-            # Frame 2: Blinking
+            # Frame 2: Blinking (eyes closed)
             [
-                "  NN  NN ",
-                " NPPPPPPN",
-                "NPPPPPPPPN",
-                "NPPPPPPPPN",
-                "NPNNNNNNNPN",
-                "NPNNNNNNPN",
-                "NPPNNNNPPN",
-                " NPPPPPPPN"
+                "                ",
+                "    NNNNNNNNN    ",
+                "  NNNPPPPPPPNNN  ",
+                " NPPPPPPPPPPPPNN ",
+                " NPPNNNNNNNNPPPPN ",
+                "NPPNNNNNNNNNNPPN",
+                "NPNNNNNNNNNNNNPN",
+                "NPPNNPPPPNNPPN ",
+                "NPPPPPPPPPPPPPN ",
+                " NPPPPPPPPPPPPN ",
+                " NPPNNNNNNNNPPN ",
+                "  NPPPPPPPPPPN  ",
+                "   NPPPPPPPPN   ",
+                "    NNNNNNN     ",
+                "                ",
+                "                "
             ]
         ],
         'idle_tail': [
             # Frame 1: Tail down
             [
-                "  NN  NN ",
-                " NPPPPPPN",
-                "NPPPPPPPPN",
-                "NPPNNNNPPN",
-                "NPNNNNNNNPN",
-                "NPNNNNNNPN",
-                "NPPNNNNPPN",
-                " NPPPPPPPN"
+                "                ",
+                "    NNNNNNNNN    ",
+                "  NNNPPPPPPPNNN  ",
+                " NPPPPPPPPPPPPNN ",
+                " NPPNNNNNNNPPPPN ",
+                "NPPNNNNNNNNNNPPN",
+                "NPNNNNNNNNNNNNPN",
+                "NPPNNNNNNNNNPPN ",
+                "NPPPPPPPPPPPPPN ",
+                " NPPPPPPPPPPPPN ",
+                " NPPNNPNNPNPPN ",
+                "  NPPPPPPPPPPN  ",
+                "   NPPPPPPPPN   ",
+                "    NNNNNNN     ",
+                "         NN     ",
+                "         NN     "
             ],
-            # Frame 2: Tail up
+            # Frame 2: Tail mid-swing
             [
-                "  NNNNNN ",
-                " NPPPPPPN",
-                "NPPPPPPPPN",
-                "NPPNNNNPPN",
-                "NPNNNNNNNPN",
-                "NPNNNNNNPN",
-                "NPPNNNNPPN",
-                " NPPPPPPPN"
+                "                ",
+                "    NNNNNNNNN    ",
+                "  NNNPPPPPPPNNN  ",
+                " NPPPPPPPPPPPPNN ",
+                " NPPNNNNNNNPPPPN ",
+                "NPPNNNNNNNNNNPPN",
+                "NPNNNNNNNNNNNNPN",
+                "NPPNNNNNNNNNPPN ",
+                "NPPPPPPPPPPPPPN ",
+                " NPPPPPPPPPPPPN ",
+                " NPPNNPNNPNPPN ",
+                "  NPPPPPPPPPPN  ",
+                "   NPPPPPPPPN   ",
+                "    NNNNNNN NN  ",
+                "          NNNN  ",
+                "            NN  "
+            ],
+            # Frame 3: Tail up
+            [
+                "            NN  ",
+                "    NNNNNNNNNNN ",
+                "  NNNPPPPPPPNNN ",
+                " NPPPPPPPPPPPPNN",
+                " NPPNNNNNNNPPPPN",
+                "NPPNNNNNNNNNNPPN",
+                "NPNNNNNNNNNNNNPN",
+                "NPPNNNNNNNNNPPN ",
+                "NPPPPPPPPPPPPPN ",
+                " NPPPPPPPPPPPPN ",
+                " NPPNNPNNPNPPN ",
+                "  NPPPPPPPPPPN  ",
+                "   NPPPPPPPPN   ",
+                "    NNNNNNN     ",
+                "                ",
+                "                "
             ]
         ],
         'idle_headtilt': [
             # Frame 1: Head normal
             [
-                "  NN  NN ",
-                " NPPPPPPN",
-                "NPPPPPPPPN",
-                "NPPNNNNPPN",
-                "NPNNNNNNNPN",
-                "NPNNNNNNPN",
-                "NPPNNNNPPN",
-                " NPPPPPPPN"
+                "                ",
+                "    NNNNNNNNN    ",
+                "  NNNPPPPPPPNNN  ",
+                " NPPPPPPPPPPPPNN ",
+                " NPPNNNNNNNPPPPN ",
+                "NPPNNNNNNNNNNPPN",
+                "NPNNNNNNNNNNNNPN",
+                "NPPNNNNNNNNNPPN ",
+                "NPPPPPPPPPPPPPN ",
+                " NPPPPPPPPPPPPN ",
+                " NPPNNPNNPNPPN ",
+                "  NPPPPPPPPPPN  ",
+                "   NPPPPPPPPN   ",
+                "    NNNNNNN     ",
+                "                ",
+                "                "
             ],
-            # Frame 2: Head tilted
+            # Frame 2: Head tilted right
             [
-                "   NN NN  ",
-                "  NPPPPPPN",
-                " NPPPPPPPPN",
-                " NPPNNNNPPN",
-                " NPNNNNNNNPN",
-                " NPNNNNNNPN",
-                " NPPNNNNPPN",
-                "  NPPPPPPPN"
+                "                ",
+                "     NNNNNNNNN   ",
+                "   NNNPPPPPPPNNN ",
+                "  NPPPPPPPPPPPPN ",
+                "  NPPNNNNNNNPPPPN",
+                " NPPNNNNNNNNNNPPN",
+                " NPNNNNNNNNNNNNPN",
+                " NPPNNNNNNNNNPPN",
+                " NPPPPPPPPPPPPPN",
+                "  NPPPPPPPPPPPPN",
+                "  NPPNNPNNPNPPN ",
+                "   NPPPPPPPPPPN ",
+                "    NPPPPPPPPN  ",
+                "     NNNNNNN    ",
+                "                ",
+                "                "
+            ]
+        ],
+        'idle_stretch': [
+            # Frame 1: Normal
+            [
+                "                ",
+                "    NNNNNNNNN    ",
+                "  NNNPPPPPPPNNN  ",
+                " NPPPPPPPPPPPPNN ",
+                " NPPNNNNNNNPPPPN ",
+                "NPPNNNNNNNNNNPPN",
+                "NPNNNNNNNNNNNNPN",
+                "NPPNNNNNNNNNPPN ",
+                "NPPPPPPPPPPPPPN ",
+                " NPPPPPPPPPPPPN ",
+                " NPPNNPNNPNPPN ",
+                "  NPPPPPPPPPPN  ",
+                "   NPPPPPPPPN   ",
+                "    NNNNNNN     ",
+                "                ",
+                "                "
+            ],
+            # Frame 2: Stretching up
+            [
+                "   NNNNNNNNN    ",
+                "   NPPPPPPPPN   ",
+                " NNNPPPPPPPNNN  ",
+                " NPPPPPPPPPPPPNN",
+                " NPPNNNNNNNPPPPN",
+                "NPPNNNNNNNNNNPPN",
+                "NPNNNNNNNNNNNNPN",
+                "NPPNNNNNNNNNPPN ",
+                "NPPPPPPPPPPPPPN ",
+                " NPPPPPPPPPPPPN ",
+                " NPPNNPNNPNPPN ",
+                "  NPPPPPPPPPPN  ",
+                "   NPPPPPPPPN   ",
+                "    NNNNNNN     ",
+                "                ",
+                "                "
             ]
         ]
     }
@@ -98,19 +205,19 @@ class PixelArtCat:
     }
     
     @staticmethod
-    def render_frame(frame_data, size=256):
-        """Render pixel art frame to QPixmap"""
+    def render_frame(frame_data, size=320):
+        """Render 16x16 pixel art frame to QPixmap"""
         pixmap = QPixmap(size, size)
         pixmap.fill(QColor('#1A1A2E'))
         
         painter = QPainter(pixmap)
-        pixel_size = size // 8
+        pixel_size = size // 16
         
         for y, row in enumerate(frame_data):
             for x, char in enumerate(row):
                 color = QColor(PixelArtCat.COLORS.get(char, '#1A1A2E'))
                 painter.fillRect(x * pixel_size, y * pixel_size, pixel_size, pixel_size, color)
-                # Add subtle border to pixels
+                # Add subtle border to pixels for pixelated look
                 painter.drawRect(x * pixel_size, y * pixel_size, pixel_size, pixel_size)
         
         painter.end()
@@ -304,11 +411,11 @@ class SecretMenuDialog(QDialog):
 
 
 class MediaPlayer(QMainWindow):
-    """Main Media Player Application with Material 3 Design & Pixel Art Cat"""
+    """Main Media Player Application with 16x16 Pixel Art Cat"""
     def __init__(self):
         super().__init__()
         self.setWindowTitle("🎵 Universal Media Player")
-        self.setGeometry(100, 100, 1100, 850)
+        self.setGeometry(100, 100, 1100, 900)
         
         # Media player setup
         self.player = QMediaPlayer()
@@ -324,12 +431,13 @@ class MediaPlayer(QMainWindow):
         self.current_index = 0
         self.secret_unlocked = False
         
-        # Pixel art cat animation
+        # Pixel art cat animation (16x16)
         self.cat_frame = 0
         self.cat_animation_index = 0
+        self.cat_animations = ['idle_blink', 'idle_tail', 'idle_headtilt', 'idle_stretch']
         self.cat_timer = QTimer()
         self.cat_timer.timeout.connect(self.update_cat_animation)
-        self.cat_timer.start(500)  # Update every 500ms
+        self.cat_timer.start(400)  # Update every 400ms
         
         self.init_ui()
         self.apply_dark_theme()
@@ -350,17 +458,17 @@ class MediaPlayer(QMainWindow):
         title.setAlignment(Qt.AlignmentFlag.AlignLeft)
         top_layout.addWidget(title)
         
-        # Pixel art cat display
+        # Pixel art cat display (16x16, scaled to 320x320)
         self.cat_label = QLabel()
         self.cat_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.cat_label.setFixedSize(180, 180)
+        self.cat_label.setFixedSize(330, 330)
         self.update_cat_display()
         top_layout.addWidget(self.cat_label)
         
         # Settings button (top right)
         settings_btn = QPushButton("⚙️")
-        settings_btn.setFont(QFont("Segoe UI", 14))
-        settings_btn.setFixedSize(50, 50)
+        settings_btn.setFont(QFont("Segoe UI", 16))
+        settings_btn.setFixedSize(60, 60)
         settings_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         settings_btn.clicked.connect(self.open_settings)
         top_layout.addStretch()
@@ -382,7 +490,7 @@ class MediaPlayer(QMainWindow):
         self.playlist_widget = QListWidget()
         self.playlist_widget.setFont(QFont("Segoe UI", 10))
         self.playlist_widget.itemDoubleClicked.connect(self.play_from_list)
-        self.playlist_widget.setMaximumHeight(180)
+        self.playlist_widget.setMaximumHeight(150)
         main_layout.addWidget(self.playlist_widget)
         
         # Load button
@@ -429,7 +537,7 @@ class MediaPlayer(QMainWindow):
         for emoji, func in buttons:
             btn = QPushButton(emoji)
             btn.setFont(QFont("Segoe UI", 12))
-            btn.setFixedHeight(45)
+            btn.setFixedHeight(50)
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
             btn.clicked.connect(func)
             controls_layout.addWidget(btn)
@@ -466,10 +574,9 @@ class MediaPlayer(QMainWindow):
         
     def update_cat_animation(self):
         """Update pixel art cat animation"""
-        animations = ['idle_blink', 'idle_tail', 'idle_headtilt']
-        current_anim = animations[self.cat_animation_index % len(animations)]
-        
+        current_anim = self.cat_animations[self.cat_animation_index % len(self.cat_animations)]
         frames = PixelArtCat.FRAMES[current_anim]
+        
         self.cat_frame = (self.cat_frame + 1) % len(frames)
         
         # Change animation every 3 frames
@@ -480,11 +587,10 @@ class MediaPlayer(QMainWindow):
         
     def update_cat_display(self):
         """Display current cat frame"""
-        animations = ['idle_blink', 'idle_tail', 'idle_headtilt']
-        current_anim = animations[self.cat_animation_index % len(animations)]
+        current_anim = self.cat_animations[self.cat_animation_index % len(self.cat_animations)]
         frames = PixelArtCat.FRAMES[current_anim]
         frame_data = frames[self.cat_frame % len(frames)]
-        pixmap = PixelArtCat.render_frame(frame_data, 160)
+        pixmap = PixelArtCat.render_frame(frame_data, 320)
         self.cat_label.setPixmap(pixmap)
         
     def open_settings(self):
